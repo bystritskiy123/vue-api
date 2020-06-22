@@ -1,57 +1,84 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
+  <div id="app">
+    <h1>Bitcoin Price Index</h1>
+
+    <section v-if="errored">
+      <p>We're sorry, we're not able to retrieve this information at the moment, please try back later</p>
+    </section>
+
+    <section v-else>
+      <div v-if="loading">Loading...</div>
+
+
+      <div v-else v-for="currency in info" class="currency">
+        {{ currency.description }}:
+        <span class="lighten">
+          <span v-html="currency.symbol"></span>{{ currency.rate_float | currencydecimal }}
+        </span>
+      </div>
+
+    </section>
   </div>
 </template>
 
 <script>
-export default {
-  name: 'HelloWorld',
-  props: {
-    msg: String
+  const axios = require('axios');
+
+
+  export default {
+    name: 'HelloWorld',
+    data() {
+      return {
+        info: null,
+        loading: true,
+        errored: false
+      };
+    },
+    filters: {
+      currencydecimal(value) {
+        return value.toFixed(2);
+      }
+    },
+    mounted() {
+      axios
+        .get('https://api.coindesk.com/v1/bpi/currentprice.json')
+        
+        .then(response => {
+          this.info = response.data.bpi;
+        })
+        .catch(error => {
+          console.log(error);
+          this.errored = true;
+        })
+        .finally(() => (this.loading = false));
+    }
   }
-}
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
-}
+  body {
+    display: flex;
+    justify-content: center;
+    background: #7E8D85;
+    font-family: 'Roboto Slab', serif;
+    line-height: 1.4;
+  }
+
+  #app {
+    margin-top: 20px;
+    width: 300px;
+    padding: 0 40px 40px;
+    background: #2F242C;
+    border-radius: 5px;
+    color: #B3BFB8;
+  }
+
+  h1 {
+    color: #F0F7F4;
+  }
+
+  .lighten {
+    color: white;
+  }
 </style>
